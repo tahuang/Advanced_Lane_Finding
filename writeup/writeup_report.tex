@@ -51,13 +51,13 @@ I calculated the correct camera matrix and distortion coefficients using several
 The code to run the entire pipeline is in the last section of \texttt{lane\_finding.ipynb} titled "Pipeline".
 
 \subsection{Distortion Correction}
-Distortion correction was done using the camera calibration parameters found in the previous step and the OpenCV \texttt{undistort} function. The code can be found in section 2 of \texttt{lane\_finding.ipynb} and line 21 of the last cell. An example of a distortion corrected image is below. The undistorted image doesn't look much different because there was not too much distortion in the original image.
+Distortion correction was done using the camera calibration parameters found in the previous step and the OpenCV \texttt{undistort} function. The code can be found in section 2 of \texttt{lane\_finding.ipynb} and line 15 of the last cell. An example of a distortion corrected image is below. The undistorted image doesn't look much different because there was not too much distortion in the original image.
 
 \begin{figure}[h]
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=1\linewidth]{../test_images/test3.jpg}
+  \includegraphics[width=1\linewidth]{test3.jpg}
   \caption{Original image}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
@@ -70,7 +70,7 @@ Distortion correction was done using the camera calibration parameters found in 
 \end{figure}
 
 \subsection{Thresholded Binary Image}
-Next, I created a thresholded binary image by first Gaussian blurring the image to reduce noise. I then applied the $Sobel_x$ and $Sobel_y$ operators and a HLS color threshold to the image. Table~\ref{tab:threshold_table} shows the thresholds I used for each filter. I then combined all of the binary images from each method to create a combined threshold. Figure~\ref{fig:threshold_img} shows an example of the combined output. The code for the thresholding is on lines 26-33 of the last cell and in the cells under section 3 of \texttt{lane\_finding.ipynb}. After thresholding, I also cropped a region of interest to focus on the important pixels and reduce noise and outliers (code on line 38 of last cell).
+Next, I created a thresholded binary image by first Gaussian blurring the image to reduce noise. I then applied the $Sobel_x$ and $Sobel_y$ operators and a HLS color threshold to the image. Table~\ref{tab:threshold_table} shows the thresholds I used for each filter. I then combined all of the binary images from each method to create a combined threshold. Figure~\ref{fig:threshold_img} shows an example of the combined output. The code for the thresholding is on lines 18-25 of the last cell and in the cells under section 3 of \texttt{lane\_finding.ipynb}. After thresholding, I also cropped a region of interest to focus on the important pixels and reduce noise and outliers (code on line 26-39 of last cell).
 
 \begin{table}[ht]
 \begin{tabular}{|c | c | c | c |}
@@ -103,7 +103,7 @@ HLS Saturation & N/A & 190 & 255 \\ \hline
 \end{figure}
 
 \subsection{Perspective Transform}
-The next step was to apply a perspective transform on the image to transform the lane markings to a bird's eye view. This transform will help us to calculate the lane curvature. I used OpenCV's \texttt{warpPerspective} function and the code can be found in section 4, lines 4-7 of the second cell under the "Pipeline" section, and line 43 of the last cell. The following is an example of the perspective transformation:
+The next step was to apply a perspective transform on the image to transform the lane markings to a bird's eye view. This transform will help us to calculate the lane curvature. I used OpenCV's \texttt{warpPerspective} function and the code can be found in section 4, lines 4-7 of the second cell under the "Pipeline" section, and line 32 of the last cell. The following is an example of the perspective transformation:
 
 \begin{figure}[h]
 \centering
@@ -122,9 +122,9 @@ The next step was to apply a perspective transform on the image to transform the
 \end{figure}
 
 \subsection{Fitting a Polynomial to Lane Pixels}
-Once I have transformed the image to a bird's eye view, I detect the lane pixels in the image and fit a quadratic function to the pixels. For the first image, I used the convolution approach, where I sliced the image into 9 vertical layers and first found the maximum convolution signal with the a small window template to find the starting places for the left and right lane. Then, for each following layer, I search in a margin around the past left lane centroid and the past right centroid, find the maximum convolution signal, and mark that as the left lane centroid and right lane centroid. If no lane pixels are found in the layer, I just keep the past left and right centroids. Then, I search for nonzero pixels around the lane centroids and fit a quadratic function to the pixels using \texttt{np.polyfit}. The code for this is in section 5 of \texttt{lane\_finding.ipynb} and lines 50-51 of the last cell.
+Once I have transformed the image to a bird's eye view, I detect the lane pixels in the image and fit a quadratic function to the pixels. For the first image, I used the convolution approach, where I sliced the image into 9 vertical layers and first found the maximum convolution signal with the a small window template to find the starting places for the left and right lane. Then, for each following layer, I search in a margin around the past left lane centroid and the past right centroid, find the maximum convolution signal, and mark that as the left lane centroid and right lane centroid. If no lane pixels are found in the layer, I just keep the past left and right centroids. Then, I search for nonzero pixels around the lane centroids and fit a quadratic function to the pixels using \texttt{np.polyfit}. The code for this is in section 5 of \texttt{lane\_finding.ipynb} and lines 37-38 of the last cell.
 
-For every following image, I simply do a margin search for nonzero pixels around the best polynomial fit so far for the left and right lanes. Then, I fit a quadratic function to the new pixels with \texttt{np.polyfit}. The code for this is in section 5 of \texttt{lane\_finding.ipynb} and lines 52-53 of the last cell. Figure~\ref{fig:lane_pixels} shows an example of the lane centroid search result for the first image and an example of fitting a quadratic to the lane pixels.
+For every following image, I simply do a margin search for nonzero pixels around the best polynomial fit so far for the left and right lanes. Then, I fit a quadratic function to the new pixels with \texttt{np.polyfit}. The code for this is in section 5 of \texttt{lane\_finding.ipynb} and lines 39-40 of the last cell. Figure~\ref{fig:lane_pixels} shows an example of the lane centroid search result for the first image and an example of fitting a quadratic to the lane pixels.
 
 \begin{figure}[h]
 \centering
@@ -154,16 +154,23 @@ With a quadratic fit for the lanes, where $x = ay^2 + by + c$, Eq.~\ref{eq:radiu
 r = \frac{[1+(2ay + b)^2]^\frac{3}{2}}{|2a|}
 \end{equation}
 
-The code for radius curvature calculation is in section 6 of \texttt{lane\_finding.ipynb} and line 56 of the last cell.
+The code for radius curvature calculation is in section 6 of \texttt{lane\_finding.ipynb} and line 43 of the last cell.
 
-The offset of the car from the center of the lane was calculated by finding the halfway point between the first left lane pixel and the first right lane pixel, comparing this to the width of the image divided by 2, and then converting to meters. It is assumed that the camera is mounted at the center of the car. The code for finding the offset can be found in section 6 and line 57 of the last cell of \texttt{lane\_finding.ipynb}. For example, for the image displayed in Fig~\ref{fig:perspective}, the radius of curvature was 508.06 m for the left lane boundary and 599.81 m for the right lane boundary and the offset from center was -0.222 m.
-
-\subsection{Plotting the Lane Area}
-Finally, the last step was to warp the lane boundaries back onto the image. I do this by creating a polygon of the left and right points using OpenCV's \texttt{fillPoly} function. Then, I draw the polygon on a warped blank image and warp the polygon image back to the original image perspective with OpenCV's \texttt{warpPerspective} function and the inverse perspective matrix found earlier in the pipeline. I then combine this image with the original image using the OpenCV \texttt{addWeighted} function. An example with the lane fit plotted on the original image is shown below:
+The offset of the car from the center of the lane was calculated by finding the halfway point between the first left lane pixel and the first right lane pixel, comparing this to the width of the image divided by 2, and then converting to meters. It is assumed that the camera is mounted at the center of the car. The code for finding the offset can be found in section 6 and line 44 of the last cell of \texttt{lane\_finding.ipynb}. Figure~\ref{fig:radius_offset} shows an example.
 
 \begin{figure}[h]
 \centering
-\includegraphics[scale=1]{lane_test.png}
+\includegraphics[scale=0.25]{curvature_and_offset.png}
+\caption{Radius of curvature and vehicle offset from center}
+\label{fig:radius_offset}
+\end{figure}
+
+\subsection{Plotting the Lane Area}
+Finally, the last step was to warp the lane boundaries back onto the image. I do this by creating a polygon of the left and right points using OpenCV's \texttt{fillPoly} function. Then, I draw the polygon on a warped blank image and warp the polygon image back to the original image perspective with OpenCV's \texttt{warpPerspective} function and the inverse perspective matrix found earlier in the pipeline. I then combine this image with the original image using the OpenCV \texttt{addWeighted} function. The code is found in section 7 of \texttt{lane\_finding.ipynb} and line 85 of the last cell. An example with the lane fit plotted on the original image is shown below:
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.75]{lane_test.png}
 \caption{Warping lane boundaries back onto image}
 \label{fig:lane_plot}
 \end{figure}
